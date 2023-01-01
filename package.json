@@ -1,5 +1,5 @@
 {
-  "name": "vercel-express-react-demo",
+  "name": "search-hn",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
