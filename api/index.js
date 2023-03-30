@@ -6,5 +6,5 @@ if (process.env.NODE_ENV !== 'production') {
 const app = require('./server');
 
 app.listen(app.get('port'), function() {
-  console.log('Express app yt-focus is running on port', app.get('port'));
+  console.log('Express app Spotifeye is running on port', app.get('port'));
 });
