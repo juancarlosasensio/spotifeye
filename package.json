@@ -22,7 +22,6 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-    "//build_comment":  "See here https://stackoverflow.com/a/69713899 why we add --openssl-legacy-provider",
     "client": "react-scripts start --openssl-legacy-provider",
     "build": "react-scripts build --openssl-legacy-provider",
     "test": "react-scripts test",
