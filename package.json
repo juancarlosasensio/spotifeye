@@ -22,8 +22,8 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-    "client": "react-scripts start",
-    "build": "react-scripts build",
+    "client": "react-scripts start --openssl-legacy-provider",
+    "build": "react-scripts build --openssl-legacy-provider",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "server": "cd api && node index.js",
