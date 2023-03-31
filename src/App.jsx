@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useHN } from "./hooks/useHN";
+import { useSpotify } from "./hooks/useSpotify";
 import "./App.css";
 
 const App = () => {
@@ -13,12 +13,13 @@ const App = () => {
   const [query, setQuery] = useState("");
   // Avoids infinite loop cause by resetting requestOptions value on every re-render. We don't want fetchOptions to change.
   const [fetchOptions, ] = useState(requestOptions);
-  const { status, data, error } = useHN(query, fetchOptions);
+  const { status, data, error } = useSpotify(query, fetchOptions);
 
   const handleSubmit = e => {
     e.preventDefault();
 
     const search = e.target.search.value;
+    console.log(search)
     if (search) {
       setQuery(search);
       e.target.search.value = "";
