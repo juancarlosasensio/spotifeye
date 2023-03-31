@@ -8,8 +8,17 @@ const getArtist = async (req, res) => {
   
   try {
     const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=artist&tag:hipster`
-    console.log(URL)
-    res.status(200).json({'hello': 'world'})
+    console.log('This is the URL, lads', URL)
+    
+    const response = await fetch(URL, {
+      headers: {
+        "Authorization": 'Bearer  BQAUpf_PzvIsGFdRKpvaOUcr70GIpX0ufvlhk9pSeeya4kl4YLvSIuAiZoJxa0B60pNkxMsqYdDZqlDvrtXTfAl9BdwbQ6--tEYODED2A_pWfMQjOgUj'
+      },
+    });
+
+    const data = await response.json();
+    console.log("data", data);
+    res.status(200).json(data.artists)
   } catch (error) {  
     let errMessage = `${error}`;
     processErrorResponse(res, 500, errMessage);  
