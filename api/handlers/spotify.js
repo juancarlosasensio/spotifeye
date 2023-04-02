@@ -65,22 +65,6 @@ const getSpotifySearch = async (url, token) => {
   // Tokens are only valid for 1 hour :shrug
 const getToken = async (req, res) => {
   try {
-    const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
-      method : 'POST',
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `grant_type=client_credentials&client_id=${process.env.SPOTIFY_CLIENT_ID}&client_secret=${process.env.SPOTIFY_CLIENT_SECRET}`
-    });
-    const tokenData = await tokenResponse.json();
-    // https://vercel.com/docs/concepts/functions/serverless-functions/edge-caching#:~:text=header.-,Request%20must%20not%20contain%20the,header.,-Request%20must%20not
-    res.setHeader('Cache-Control','max-age=0, s-max-age=3600');
-    res.status(200).json(tokenData.access_token);
-  } catch (error) {
-    throw new Error(`${error.message}`);
-  }  
-}
-
-const getToken = async (req, res) => {
-  try {
     if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
       throw new Error("No Spotify credentials provided"); 
     }
