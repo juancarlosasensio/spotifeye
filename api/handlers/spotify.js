@@ -15,6 +15,7 @@ const getArtist = async (req, res) => {
   try {
       let tokenResponse = await fetch(tokenAbsoluteURL);
       let token = await tokenResponse.json();
+      console.log("logging from getArtist, value of tokenResponse:", tokenResponse)
       console.log("logging from getArtist, value of token:", token)
       // console.log("logging from getArtist handler: ", token)
       response = await fetch(URL, {
@@ -23,9 +24,6 @@ const getArtist = async (req, res) => {
           },
       });
       data = await response.json();
-      
-      console.log("logging from getArtist, value of data:", data)
-      console.log("logging from getArtist, value of data.artists:", data.artists)
 
     //TODO: find a better way to handle retries? 
     // https://markmichon.com/automatic-retries-with-fetch
@@ -79,8 +77,7 @@ const getToken = async (req, res) => {
     res.setHeader('Cache-Control','max-age=0, s-max-age=3600');
     res.status(200).json(tokenData.access_token);
   } catch (error) {
-    console.log('Error coming from getToken')
-    throw new Error(`${error.message}`);
+    res.status(403).json(error.message);
   }  
 }
 
