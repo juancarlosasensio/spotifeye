@@ -75,7 +75,7 @@ const getToken = async (req, res) => {
     });
     const tokenData = await tokenResponse.json();
     // https://vercel.com/docs/concepts/functions/serverless-functions/edge-caching#:~:text=header.-,Request%20must%20not%20contain%20the,header.,-Request%20must%20not
-    res.setHeader('Cache-Control','max-age=0, s-max-age=3600');
+    res.setHeader('Cache-Control','max-age=0, s-maxage=3600');
     res.status(200).json(tokenData.access_token);
   } catch (error) {
     res.status(500).send(error.message);
