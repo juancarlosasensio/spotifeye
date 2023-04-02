@@ -15,8 +15,6 @@ const getArtist = async (req, res) => {
   try {
       let tokenResponse = await fetch(tokenAbsoluteURL);
       let token = await tokenResponse.json();
-      console.log("logging from getArtist, value of tokenResponse:", tokenResponse)
-      console.log("logging from getArtist, value of token:", token)
       // console.log("logging from getArtist handler: ", token)
       response = await fetch(URL, {
         headers: {
@@ -77,7 +75,26 @@ const getToken = async (req, res) => {
     res.setHeader('Cache-Control','max-age=0, s-max-age=3600');
     res.status(200).json(tokenData.access_token);
   } catch (error) {
-    res.status(403).json(error.message);
+    throw new Error(`${error.message}`);
+  }  
+}
+
+const getToken = async (req, res) => {
+  try {
+    if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
+      throw new Error("No Spotify credentials provided"); 
+    }
+    const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
+      method : 'POST',
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `grant_type=client_credentials&client_id=${process.env.SPOTIFY_CLIENT_ID}&client_secret=${process.env.SPOTIFY_CLIENT_SECRET}`
+    });
+    const tokenData = await tokenResponse.json();
+    // https://vercel.com/docs/concepts/functions/serverless-functions/edge-caching#:~:text=header.-,Request%20must%20not%20contain%20the,header.,-Request%20must%20not
+    res.setHeader('Cache-Control','max-age=0, s-max-age=3600');
+    res.status(200).json(tokenData.access_token);
+  } catch (error) {
+    res.status(500).send(error.message);
   }  
 }
 
