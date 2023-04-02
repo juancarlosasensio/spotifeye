@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const { protect } = require('./utils/auth');
 const router = require('./router');
+const { getToken } = require('./handlers/spotify')
 
 const app = express();
 // adding Helmet to enhance API's security
@@ -21,7 +22,9 @@ app.use(morgan('combined'));
 // https://www.freecodecamp.org/news/how-to-create-a-react-app-with-a-node-backend-the-complete-guide/
 app.use(express.static(path.resolve(__dirname, '../public')));
 
-// Authorize all /api requests
+// Authorize all /api except for spotify/ requests. 
+// Why? Because we want to cache this, and we can't have auth headers when caching: https://vercel.com/docs/concepts/functions/serverless-functions/edge-caching#:~:text=header.-,Request%20must%20not%20contain%20the,header.,-Request%20must%20not
+app.use("/api/spotify/getToken", getToken);
 app.use("/api", protect(), router);
 
 // All other GET requests not handled before will return our React app
