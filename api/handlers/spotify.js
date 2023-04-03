@@ -36,7 +36,7 @@ const getArtists = async (req, res) => {
   }
 }
 
-  const getToken = async (req, res) => {
+const getToken = async (req, res) => {
   try {
     if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
       throw new Error("No Spotify credentials provided"); 
