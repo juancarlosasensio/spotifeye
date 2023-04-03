@@ -10,13 +10,17 @@ const processErrorResponse = require('../utils/processErrorResponse.js');
   Optional request params? One endpoint, multiple handlers?
 */
 const getArtists = async (req, res) => {
-  const { query } = req.params;
+  console.log("logging from getArtitsts, req.params and req.query", req.params, req.query);
+  const { query, type } = req.params;
+  
   if (!query) { res.status(204) };
+  
   let spotifyResponse;
   let spotifyData;
-  console.log("You've hit /api/spotify/search with query: ", query)
-  
-  const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=artist`;
+  let resourceType = type ? type : 'artist'
+
+  console.log("You've hit /api/spotify/search with query and type: ", query, type)
+  const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=${resourceType}`;
   // https://stackoverflow.com/a/10185427
   const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken';
 
@@ -45,8 +49,10 @@ const getArtists = async (req, res) => {
     //   });
     //   spotifyData = await response.json(); 
     // }
+
+
       
-    res.status(200).json(spotifyData.artists);
+    res.status(200).json(spotifyData[`${resourceType}s`]);
 
     } catch (error) {  
       let errMessage = `${error}`;
