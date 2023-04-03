@@ -9,6 +9,6 @@ const router = Router();
 
 router.get('/hn', getFrontPageArticles)
 router.get('/hn/:query', getArticlesByQuery)
-router.get('/spotify/artist/:query', getArtists)
+router.get('/spotify/search/:query', getArtists)
 
 module.exports = router;

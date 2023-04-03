@@ -1,6 +1,14 @@
 const fetch = require('node-fetch');
 const processErrorResponse = require('../utils/processErrorResponse.js');
 
+
+/*
+  TODO: how could I use the same endpoint/handler to search for artists AND tracks??
+  Returned JSON would still have a similar shape, maybe, like data.items, 
+  but they will have different properties that we care about for each.
+
+  Optional request params? One endpoint, multiple handlers?
+*/
 const getArtists = async (req, res) => {
   const { query } = req.params;
   if (!query) { res.status(204) };
@@ -8,7 +16,7 @@ const getArtists = async (req, res) => {
   let spotifyData;
   console.log("You've hit /api/spotify/search with query: ", query)
   
-  const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=artist&tag:hipster`;
+  const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=artist`;
   // https://stackoverflow.com/a/10185427
   const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken';
 
