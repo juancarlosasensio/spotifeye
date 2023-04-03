@@ -1,11 +1,12 @@
 const fetch = require('node-fetch');
 const processErrorResponse = require('../utils/processErrorResponse.js');
 
-const getArtist = async (req, res) => {
+const getArtists = async (req, res) => {
   const { query } = req.params;
-  let response;
-  let data;
-  console.log("You've hit /api/spotify/artist with query: ", query)
+  if (!query) { res.status(204) };
+  let spotifyResponse;
+  let spotifyData;
+  console.log("You've hit /api/spotify/search with query: ", query)
   
   const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=artist&tag:hipster`;
   // https://stackoverflow.com/a/10185427
@@ -15,18 +16,18 @@ const getArtist = async (req, res) => {
   try {
       let tokenResponse = await fetch(tokenAbsoluteURL);
       let token = await tokenResponse.json();
-      // console.log("logging from getArtist handler: ", token)
-      response = await fetch(URL, {
+      // console.log("logging from getArtists handler: ", token)
+      spotifyResponse = await fetch(URL, {
         headers: {
             "Authorization": `Bearer ${token}`
           },
       });
-      data = await response.json();
+      spotifyData = await spotifyResponse.json();
 
     //TODO: find a better way to handle retries? 
     // https://markmichon.com/automatic-retries-with-fetch
-    // if (data?.error) {
-    //   // console.log("There was an error (1st try): ", data.error.message);
+    // if (spotifyData?.error) {
+    //   // console.log("There was an error (1st try): ", spotifyData.error.message);
     //   let tokenResponse = await fetch(tokenAbsoluteURL);
     //   let token = tokenResponse.json();
     //   response = await fetch(URL, {
@@ -34,10 +35,10 @@ const getArtist = async (req, res) => {
     //         "Authorization": `Bearer ${token}`
     //       },
     //   });
-    //   data = await response.json(); 
+    //   spotifyData = await response.json(); 
     // }
       
-    res.status(200).json(data.artists);
+    res.status(200).json(spotifyData.artists);
 
     } catch (error) {  
       let errMessage = `${error}`;
@@ -46,24 +47,56 @@ const getArtist = async (req, res) => {
   }
 }
 
-// Can I "save" the last token (or time of last token) between calls to Spotify using closure?
-const getSpotifySearch = async (url, token) => {
-  // console.log("logging from getSpotifySearch...", token)  
-  try {
-    const response = await fetch(url, {
-      headers: {
-          "Authorization": `Bearer  ${token}`
-        },
-      });
-    return response
-  } catch (error) {
-    throw new Error(`${error.message}`);
-  }
-}
+// const getArtist = async (req, res) => {
+//   const { id } = req.params;
+//   if (!query) { res.status(204) };
+//   let spotifyResponse;
+//   let spotifyData;
+//   console.log("You've hit /api/spotify/artist with id: ", id)
+  
+//   const URL = `https://api.spotify.com/v1/artists/${encodeURIComponent(id)}`
+//   // https://stackoverflow.com/a/10185427
+//   const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken';
+
+//   //making fetch call with relative path: https://stackoverflow.com/a/36369553
+//   try {
+//       let tokenResponse = await fetch(tokenAbsoluteURL);
+//       let token = await tokenResponse.json();
+//       // console.log("logging from getArtists handler: ", token)
+//       spotifyResponse = await fetch(URL, {
+//         headers: {
+//             "Authorization": `Bearer ${token}`
+//           },
+//       });
+//       spotifyData = await spotifyResponse.json();
+
+//     //TODO: find a better way to handle retries? 
+//     // https://markmichon.com/automatic-retries-with-fetch
+//     // if (spotifyData?.error) {
+//     //   // console.log("There was an error (1st try): ", spotifyData.error.message);
+//     //   let tokenResponse = await fetch(tokenAbsoluteURL);
+//     //   let token = tokenResponse.json();
+//     //   response = await fetch(URL, {
+//     //     headers: {
+//     //         "Authorization": `Bearer ${token}`
+//     //       },
+//     //   });
+//     //   spotifyData = await response.json(); 
+//     // }
+      
+//     res.status(200).json(spotifyData.artist);
+
+//     } catch (error) {  
+//       let errMessage = `${error}`;
+//       console.log("There was an error 2nd try", errMessage);
+//       processErrorResponse(res, 500, errMessage);  
+//   }
+// }
 
   //TODO: um, this is a problem. https://developer.spotify.com/documentation/web-api/tutorials/getting-started#request-artist-data
   // Tokens are only valid for 1 hour :shrug
-const getToken = async (req, res) => {
+
+  const getToken = async (req, res) => {
   try {
     if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
       throw new Error("No Spotify credentials provided"); 
@@ -82,32 +115,7 @@ const getToken = async (req, res) => {
   }  
 }
 
-// const getArticlesByQuery = async (req, res) => {
-//   const { query } = req.params
-//   console.log("You've hit /api/hackerNewsTest with query: ", query)
-//   try { 
-//     const URL = `https://hn.algolia.com/api/v1/search?query=${query}`;
-//     const response = await fetch(URL, {
-//       host: 'hn.algolia.com',
-//       port: process.env.PORT || 8081,
-//       path: `/api/v1/search?query=${query}`,
-//       method : 'GET'
-//     });
-//     const data = await response.json();
-//     const articles = data.hits;
-
-//     const filteredArticles = articles.filter(filterEmptyURL);
-//     filteredArticles.sort(sortByDate)
-
-//     res.status(200).json(filteredArticles);
-
-//   } catch (err) {
-//     let errMessage = `${err}`;
-//     processErrorResponse(res, 500, errMessage); 
-//   }
-// }
-
 module.exports = {
-  getArtist,
+  getArtists,
   getToken
 };
