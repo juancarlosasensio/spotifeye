@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useHN } from "./hooks/useHN";
+import { useSpotify } from "./hooks/useSpotify";
 import "./App.css";
 
 const App = () => {
@@ -13,12 +13,13 @@ const App = () => {
   const [query, setQuery] = useState("");
   // Avoids infinite loop cause by resetting requestOptions value on every re-render. We don't want fetchOptions to change.
   const [fetchOptions, ] = useState(requestOptions);
-  const { status, data, error } = useHN(query, fetchOptions);
+  const { status, data, error } = useSpotify(query, fetchOptions);
 
   const handleSubmit = e => {
     e.preventDefault();
 
     const search = e.target.search.value;
+    console.log(search)
     if (search) {
       setQuery(search);
       e.target.search.value = "";
@@ -46,15 +47,14 @@ const App = () => {
         {status === "fetching" && <div className="loading" />}
         {status === "fetched" && (
           <>
-            <div className="query"> {query ? `Search results for ${query}` : 'Front page results'} </div>
-            {data.length === 0 && <div> No articles found! :( </div>}
-            {data.map(article => (
-              <div className="article" key={article.objectID}>
-                <a target="_blank" href={article.url} rel="noopener noreferrer">
-                  {article.title}
+            <div>Showing results for: <em>{query}</em></div>
+            {data.items.length < 1 && <div> No artists found!</div>}
+            {data.items.map(artist => (
+              <div className="article" key={artist.id}>
+                <a target="_blank" href={artist.external_urls.spotify} rel="noopener noreferrer">
+                  {artist.name}
                 </a>{" "}
-                by {article.author}
-              </div>
+              </div>              
             ))}
           </>
         )}
