@@ -2,17 +2,16 @@ const fetch = require('node-fetch');
 const processErrorResponse = require('../utils/processErrorResponse.js');
 
 const getArtists = async (req, res) => {
-  console.log("logging from getArtitsts, req.params and req.query", req.params, req.query);
-  const { query, type } = req.params;
+  console.log("logging from getArtists, req.params and req.query", req.params, req.query);
+  const { query } = req.params;
   
   if (!query) { res.status(204) };
   
   let spotifyResponse;
   let spotifyData;
-  let resourceType = type ? type : 'artist'
 
-  console.log("You've hit /api/spotify/search with query and type: ", query, type)
-  const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=${resourceType}`;
+  console.log("You've hit /api/spotify/search/artists with query: ", query)
+  const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=artist`;
   // https://stackoverflow.com/a/10185427
   const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken';
 
@@ -27,7 +26,41 @@ const getArtists = async (req, res) => {
           },
       });
       spotifyData = await spotifyResponse.json();
-      res.status(200).json(spotifyData[`${resourceType}s`]);
+      res.status(200).json(spotifyData.artists);
+
+    } catch (error) {  
+      let errMessage = `${error}`;
+      console.log("There was an error 2nd try", errMessage);
+      processErrorResponse(res, 500, errMessage);  
+  }
+}
+
+const getTracks = async (req, res) => {
+  console.log("logging from getArtitsts, req.params and req.query", req.params, req.query);
+  const { query } = req.params;
+  
+  if (!query) { res.status(204) };
+  
+  let spotifyResponse;
+  let spotifyData;
+
+  console.log("You've hit /api/spotify/search/tracks with query: ", query)
+  const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=track`;
+  // https://stackoverflow.com/a/10185427
+  const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken';
+
+  //making fetch call with relative path: https://stackoverflow.com/a/36369553
+  try {
+      let tokenResponse = await fetch(tokenAbsoluteURL);
+      let token = await tokenResponse.json();
+      // console.log("logging from getArtists handler: ", token)
+      spotifyResponse = await fetch(URL, {
+        headers: {
+            "Authorization": `Bearer ${token}`
+          },
+      });
+      spotifyData = await spotifyResponse.json();
+      res.status(200).json(spotifyData.tracks);
 
     } catch (error) {  
       let errMessage = `${error}`;
@@ -57,5 +90,6 @@ const getToken = async (req, res) => {
 
 module.exports = {
   getArtists,
+  getTracks,
   getToken
 };
