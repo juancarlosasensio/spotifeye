@@ -9,7 +9,6 @@ export const useFetch = (url, options = {}) => {
     error: null,
     data: []
   };
-
   const [state, dispatch] = useReducer((state, action) => {
     switch (action.type) {
       case "FETCHING":
@@ -25,38 +24,43 @@ export const useFetch = (url, options = {}) => {
 
   useEffect(() => {
     let cancelRequest = false;
-    if (!url) return;
 
-    const fetchData = async () => {
-      dispatch({ type: "FETCHING" });
+    const fetchData = async (endpoint) => {
 
-      if (cache.current[url]) {
-        console.log("This url was cached!!", url);
-        const data = cache.current[url];
+      console.log("is there an endpoint?", !endpoint)
 
-        dispatch({ type: "FETCHED", payload: data });
+      if (!endpoint) {
+        dispatch({ type: 'DEFAULT' })
       } else {
-        try {
-          const response = await fetch(url, options);
-          const data = await response.json();
-          cache.current[url] = data;
-          if (cancelRequest) return;
+        if (cache.current[endpoint]) {
+          console.log("This url was cached!!", endpoint);
+          const data = cache.current[endpoint];
 
           dispatch({ type: "FETCHED", payload: data });
-        } catch (error) {
-          if (cancelRequest) return;
+        } else {
+          try {
+            const response = await fetch(endpoint, options);
+            const data = await response.json();
+            cache.current[endpoint] = data;
+            if (cancelRequest) return;
 
-          dispatch({ type: "FETCH_ERROR", payload: error.message });
+            dispatch({ type: "FETCHED", payload: data });
+          } catch (error) {
+            if (cancelRequest) return;
+
+            dispatch({ type: "FETCH_ERROR", payload: error.message });
+          }
         }
       }
     };
 
-    fetchData();
+    fetchData(url);
 
     return function cleanup() {
       cancelRequest = true;
     };
   }, [url, options]);
 
+  console.log(state);
   return state;
 };

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useSpotify } from "./hooks/useSpotify";
+import GetTracksBtn from "./GetTracksBtn";
 import "./App.css";
 
 const App = () => {
@@ -13,9 +14,20 @@ const App = () => {
   const [query, setQuery] = useState("");
   // Avoids infinite loop cause by resetting requestOptions value on every re-render. We don't want fetchOptions to change.
   const [fetchOptions, ] = useState(requestOptions);
-  const { status, data, error } = useSpotify(query, fetchOptions);
+  const { status, data, error } = useSpotify(query, 'artists', fetchOptions);
 
-  const handleSubmit = e => {
+  const handleSearchSubmit = e => {
+    e.preventDefault();
+
+    const search = e.target.search.value;
+    console.log(search)
+    if (search) {
+      setQuery(search);
+      e.target.search.value = "";
+    }
+  };
+
+  const handleGetTracksBtnClick = e => {
     e.preventDefault();
 
     const search = e.target.search.value;
@@ -29,7 +41,7 @@ const App = () => {
   return (
     <div className="App">
       <header> Hackernews Search </header>
-      <form className="Form" onSubmit={handleSubmit}>
+      <form className="Form" onSubmit={handleSearchSubmit}>
         <input
           type="text"
           autoFocus
@@ -54,6 +66,9 @@ const App = () => {
                 <a target="_blank" href={artist.external_urls.spotify} rel="noopener noreferrer">
                   {artist.name}
                 </a>{" "}
+                <div>
+                  <GetTracksBtn artist={artist.name} />
+                </div>
               </div>              
             ))}
           </>

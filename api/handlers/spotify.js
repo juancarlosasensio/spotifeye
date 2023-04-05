@@ -35,6 +35,8 @@ const getArtists = async (req, res) => {
   }
 }
 
+// Need to figure out how to get tracks for a particular artist
+// Or how to filter tracks by a given artist from a tracks response
 const getTracks = async (req, res) => {
   console.log("logging from getArtitsts, req.params and req.query", req.params, req.query);
   const { query } = req.params;
@@ -45,6 +47,10 @@ const getTracks = async (req, res) => {
   let spotifyData;
 
   console.log("You've hit /api/spotify/search/tracks with query: ", query)
+  
+  // Spotify doesn't expose an endpoint to search for tracks by a specific artist
+  // So need to figure out how to get tracks for a given artist: https://stackoverflow.com/questions/41110986/searching-in-an-artists-tracks-spotify-apis  
+  // https://api.spotify.com/v1/search?q=track:"' + song + '"%20artist:"' + artist + '"&type=track&limit=10
   const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=track`;
   // https://stackoverflow.com/a/10185427
   const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken';
@@ -60,6 +66,7 @@ const getTracks = async (req, res) => {
           },
       });
       spotifyData = await spotifyResponse.json();
+      // console.log(spotifyData.tracks)
       res.status(200).json(spotifyData.tracks);
 
     } catch (error) {  
