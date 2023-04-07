@@ -51,7 +51,7 @@ const getTracks = async (req, res) => {
   // Spotify doesn't expose an endpoint to search for tracks by a specific artist
   // So need to figure out how to get tracks for a given artist: https://stackoverflow.com/questions/41110986/searching-in-an-artists-tracks-spotify-apis  
   // https://api.spotify.com/v1/search?q=track:"' + song + '"%20artist:"' + artist + '"&type=track&limit=10
-  const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=track`;
+  const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=track&limit=50`;
   // https://stackoverflow.com/a/10185427
   const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken';
 
@@ -66,12 +66,12 @@ const getTracks = async (req, res) => {
           },
       });
       spotifyData = await spotifyResponse.json();
-      // console.log(spotifyData.tracks)
+      console.log(spotifyData.tracks.items.length)
       res.status(200).json(spotifyData.tracks);
 
     } catch (error) {  
       let errMessage = `${error}`;
-      console.log("There was an error 2nd try", errMessage);
+      console.log("There was an error on 2nd try", errMessage);
       processErrorResponse(res, 500, errMessage);  
   }
 }

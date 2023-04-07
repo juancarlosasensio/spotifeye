@@ -17,7 +17,7 @@ const GetTracksBtn = ({artist}) => {
 
   /* 
     TODO: review this idea of calling the useSpotify hook sans params/args. 
-    I thought it could work to set initial values for status, data, error without triggering a 
+    I thought this could work to set initial values for status, data, error without triggering a 
     fetch() call. But the problem is that if I then wanted to set values for status, data, error
     after a person clicks handleGetTracksBtnClick, we'd be violating the use of hooks.
 

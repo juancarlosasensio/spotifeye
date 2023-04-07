@@ -16,6 +16,8 @@ const App = () => {
   const [fetchOptions, ] = useState(requestOptions);
   const { status, data, error } = useSpotify(query, 'artists', fetchOptions);
 
+  const [trackData, setTrackData] = useState([]);
+
   const handleSearchSubmit = e => {
     e.preventDefault();
 
@@ -27,27 +29,67 @@ const App = () => {
     }
   };
 
-  const handleGetTracksBtnClick = e => {
+
+    
+  let invalidTracks = []
+  
+  function containsArtist(artist) {
+    return function(track) {
+      let containsCurrentArtist = false;
+        for (let i = 0; i < track.artists.length; i++) {
+          if (track.artists[i].name.toLowerCase().trim() === artist.toLowerCase().trim()) {
+            containsCurrentArtist = true;
+            break;
+          } else {
+            invalidTracks.push(track);
+            continue;
+          }  
+        }
+        return containsCurrentArtist;
+    }
+  }
+
+  const handleGetTracksBtnClick = async (e) => {
     e.preventDefault();
 
-    const search = e.target.search.value;
-    console.log(search)
-    if (search) {
-      setQuery(search);
-      e.target.search.value = "";
-    }
+    // const containsArtistFilter = (track) => {
+    //   let containsCurrentArtist = false;
+    //     for (let i = 0; i < track.artists.length; i++) {
+    //       if (track.artists[i].name === artistName) {
+    //         containsCurrentArtist = true;
+    //         console.log(track.artists[i].name, containsCurrentArtist)
+    //         break;
+    //       } else {
+    //         continue;
+    //       }  
+    //     }
+    //     console.log(containsCurrentArtist)
+    //     return containsCurrentArtist;
+    // }
+
+    const artistName = e.target.getAttribute('data-artist-name');
+    const res = await fetch(`/api/spotify/search/tracks/${encodeURIComponent(artistName)}`, requestOptions)
+    const data = await res.json();
+
+    console.log("logging data.items from click event handler", data.items)
+    console.log("logging data.items.length from click event handler", data.items.length)
+    const filteredTracks = data.items.filter(containsArtist(artistName))
+
+    console.log("filteredTracks.length === data.items.length??" , filteredTracks.length === data.items.length)
+    console.log("these are the invalidTracks", invalidTracks)
+    setTrackData(filteredTracks)
   };
 
   return (
     <div className="App">
-      <header> Hackernews Search </header>
+      <header> Spotify Search </header>
       <form className="Form" onSubmit={handleSearchSubmit}>
         <input
           type="text"
           autoFocus
           autoComplete="off"
           name="search"
-          placeholder="Search Hackernews"
+          placeholder="Search Spotify"
         />
         <button> Search </button>
       </form>
@@ -67,7 +109,19 @@ const App = () => {
                   {artist.name}
                 </a>{" "}
                 <div>
-                  <GetTracksBtn artist={artist.name} />
+                  {/* <GetTracksBtn artist={artist.name} /> */}
+                  <button 
+                    data-artist-name={artist.name}
+                    onClick={handleGetTracksBtnClick}
+                  >
+                    See tracks
+                  </button>
+                  {trackData.length < 1 && <p>No track data yet...</p>}
+                  <ul>
+                    {trackData.map((track, i) => (
+                      <li key={`${i}-${track.name}`}>{i}. {track.name} by {track.artists[0].name}</li>
+                    ))}
+                  </ul>
                 </div>
               </div>              
             ))}
