@@ -31,53 +31,38 @@ const App = () => {
 
 
     
-  let invalidTracks = []
+  // let invalidTracks = []
   
-  function containsArtist(artist) {
-    return function(track) {
-      let containsCurrentArtist = false;
-        for (let i = 0; i < track.artists.length; i++) {
-          if (track.artists[i].name.toLowerCase().trim() === artist.toLowerCase().trim()) {
-            containsCurrentArtist = true;
-            break;
-          } else {
-            invalidTracks.push(track);
-            continue;
-          }  
-        }
-        return containsCurrentArtist;
-    }
-  }
+  // function containsArtist(artist) {
+  //   return function(track) {
+  //     let containsCurrentArtist = false;
+  //       for (let i = 0; i < track.artists.length; i++) {
+  //         if (track.artists[i].name.toLowerCase().trim() === artist.toLowerCase().trim()) {
+  //           containsCurrentArtist = true;
+  //           break;
+  //         } else {
+  //           invalidTracks.push(track);
+  //           continue;
+  //         }  
+  //       }
+  //       return containsCurrentArtist;
+  //   }
+  // }
 
   const handleGetTracksBtnClick = async (e) => {
     e.preventDefault();
-
-    // const containsArtistFilter = (track) => {
-    //   let containsCurrentArtist = false;
-    //     for (let i = 0; i < track.artists.length; i++) {
-    //       if (track.artists[i].name === artistName) {
-    //         containsCurrentArtist = true;
-    //         console.log(track.artists[i].name, containsCurrentArtist)
-    //         break;
-    //       } else {
-    //         continue;
-    //       }  
-    //     }
-    //     console.log(containsCurrentArtist)
-    //     return containsCurrentArtist;
-    // }
-
+    
     const artistName = e.target.getAttribute('data-artist-name');
     const res = await fetch(`/api/spotify/search/tracks/${encodeURIComponent(artistName)}`, requestOptions)
     const data = await res.json();
 
-    console.log("logging data.items from click event handler", data.items)
-    console.log("logging data.items.length from click event handler", data.items.length)
-    const filteredTracks = data.items.filter(containsArtist(artistName))
+    console.log("logging data from click event handler", data)
+    console.log("logging data.length from click event handler", data.length)
+    // const filteredTracks = data.items.filter(containsArtist(artistName))
 
-    console.log("filteredTracks.length === data.items.length??" , filteredTracks.length === data.items.length)
-    console.log("these are the invalidTracks", invalidTracks)
-    setTrackData(filteredTracks)
+    // console.log("filteredTracks.length === data.items.length??" , filteredTracks.length === data.items.length)
+    // console.log("these are the invalidTracks", invalidTracks)
+    setTrackData(data)
   };
 
   return (

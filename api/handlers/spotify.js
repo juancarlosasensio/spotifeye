@@ -55,6 +55,8 @@ const getTracks = async (req, res) => {
   // https://stackoverflow.com/a/10185427
   const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken';
 
+
+
   //making fetch call with relative path: https://stackoverflow.com/a/36369553
   try {
       let tokenResponse = await fetch(tokenAbsoluteURL);
@@ -66,7 +68,30 @@ const getTracks = async (req, res) => {
           },
       });
       spotifyData = await spotifyResponse.json();
-      console.log(spotifyData.tracks.items.length)
+      
+      console.log('length of spotifyData.tracks.items', spotifyData.tracks.items.length)
+
+      let invalidTracks = []
+  
+      function containsArtist(artist) {
+        return function(track) {
+          let containsCurrentArtist = [true];
+            for (let i = 0; i < track.artists.length; i++) {
+              if (track.artists[i].name.toLowerCase().trim() !== artist.toLowerCase().trim()) {
+                containsCurrentArtist.unshift(false);
+                invalidTracks.push(track);
+              } 
+            }
+            console.log(`${track.name} contains ${artist}??`,!(containsCurrentArtist.includes(false)))
+            return containsCurrentArtist[0];
+        }
+      }
+
+      const filteredTracks = spotifyData.tracks.items.filter(containsArtist(query))
+
+      console.log('length of filteredTracks', filteredTracks.length)
+      console.log('length of invalidTracks', invalidTracks.length)
+
       res.status(200).json(spotifyData.tracks);
 
     } catch (error) {  
