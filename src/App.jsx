@@ -51,7 +51,7 @@ const App = () => {
 
   const handleGetTracksBtnClick = async (e) => {
     e.preventDefault();
-    
+
     const artistName = e.target.getAttribute('data-artist-name');
     const res = await fetch(`/api/spotify/search/tracks/${encodeURIComponent(artistName)}`, requestOptions)
     const data = await res.json();
@@ -104,7 +104,9 @@ const App = () => {
                   {trackData.length < 1 && <p>No track data yet...</p>}
                   <ul>
                     {trackData.map((track, i) => (
-                      <li key={`${i}-${track.name}`}>{i}. {track.name} by {track.artists[0].name}</li>
+                      <li key={`${i}-${track.name}`}>{i}. {track.name} by {track.artists.reduce((accumulator, artistObj) => (
+          accumulator + ', ' + artistObj.name
+      ), '')}</li>
                     ))}
                   </ul>
                 </div>
