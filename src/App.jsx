@@ -29,8 +29,6 @@ const App = () => {
     }
   };
 
-
-    
   // let invalidTracks = []
   
   // function containsArtist(artist) {

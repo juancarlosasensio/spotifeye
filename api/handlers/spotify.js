@@ -56,20 +56,18 @@ const getTracks = async (req, res) => {
   const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken';
 
   // Keys are track.name and values are a str of comma-separated track.artists
-  const tracksAndArtistsCache = {};
-  let invalidTracks = []
+  const tracksAndArtistsCache = {}; 
 
   function containsArtist(artist) {
     return function(track) {
-      let containsCurrentArtist = [true];
-        for (let i = 0; i < track.artists.length; i++) {
-          if (track.artists[i].name.toLowerCase().trim() !== artist.toLowerCase().trim()) {
-            containsCurrentArtist.unshift(false);
-            invalidTracks.push(track);
-          } 
-        }
-        console.log(`${track.name} contains ${artist}??`,!(containsCurrentArtist.includes(false)))
-        return !!containsCurrentArtist[0];
+        const artists = track.artists.reduce((accumulator, artistObj) => (
+          accumulator + ',' + artistObj.name.toLowerCase().trim()
+        ), '')
+
+        const isArtistIncluded = artists.toLowerCase().includes(artist.toLowerCase().trim());
+        console.log(`${track.name} artists: ${artists} contains ${artist}??`, isArtistIncluded);
+
+        return isArtistIncluded;
     }
   }
 
@@ -103,8 +101,6 @@ const getTracks = async (req, res) => {
       
       console.log('length of spotifyData.tracks.items', spotifyData.tracks.items.length)
 
-      // const filteredTracks = spotifyData.tracks.items.filter(containsArtist(query))
-
       // console.log('length of filteredTracks', filteredTracks.length)
       // console.log('length of invalidTracks', invalidTracks.length)
 
@@ -115,12 +111,13 @@ const getTracks = async (req, res) => {
       // })
 
       const uniqueTracks = spotifyData.tracks.items.filter(removeDuplicates(tracksAndArtistsCache))
+      const filteredTracks = uniqueTracks.filter(containsArtist(query))
       
       const duplicatedTracks = Object.keys(tracksAndArtistsCache);
       console.log('LOGGING NAMES OF DUPLICATED TRACKS')
       duplicatedTracks.forEach(trackName => console.log(`${trackName} by ${tracksAndArtistsCache[trackName]}`))
 
-      res.status(200).json(uniqueTracks);
+      res.status(200).json(filteredTracks);
       // res.status(200).json(spotifyData.tracks.items);
 
     } catch (error) {  
