@@ -55,17 +55,21 @@ const getTracks = async (req, res) => {
   // https://stackoverflow.com/a/10185427
   const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken';
 
-  // Keys are track.name and values are a str of comma-separated track.artists
+  // Keys = track.name, and values = str of comma-separated track.artists
   const tracksAndArtistsCache = {}; 
+
+  function buildArtistsString(artistsArr) {
+    return artistsArr.reduce((accumulator, artistObj) => (
+          accumulator + ',' + artistObj.name.toLowerCase().trim()
+        ), '')
+  }
 
   function containsArtist(artist) {
     return function(track) {
-        const artists = track.artists.reduce((accumulator, artistObj) => (
-          accumulator + ',' + artistObj.name.toLowerCase().trim()
-        ), '')
+        const artistsStr = buildArtistsString(track.artists);
 
-        const isArtistIncluded = artists.toLowerCase().includes(artist.toLowerCase().trim());
-        console.log(`${track.name} artists: ${artists} contains ${artist}??`, isArtistIncluded);
+        const isArtistIncluded = artistsStr.toLowerCase().includes(artist.toLowerCase().trim());
+        console.log(`${track.name} artists: ${artistsStr} contains ${artist}??`, isArtistIncluded);
 
         return isArtistIncluded;
     }
@@ -74,9 +78,7 @@ const getTracks = async (req, res) => {
 
   function removeDuplicates(cache) {
     return function(track) {
-      const artists = track.artists.reduce((accumulator, artistObj) => (
-        accumulator + ',' + artistObj.name
-      ), '')
+      const artists = buildArtistsString(track.artists)
 
       if (cache[track.name] && cache[track.name] === artists) {
         return false;  
