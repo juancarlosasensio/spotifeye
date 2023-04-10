@@ -1,22 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useSpotify } from "./hooks/useSpotify";
 import GetTracksBtn from "./GetTracksBtn";
 import "./App.css";
 
 const App = () => {
   // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#supplying_request_options
-  const requestOptions = {
+  const requestOptsRef = useRef({
     headers: {
       'Authorization': `${process.env.REACT_APP_AUTH_HEADER}`, 
       'Content-Type': 'application/json'
     }  
-  };
+  });
   const [query, setQuery] = useState("");
+  
   // Avoids infinite loop cause by resetting requestOptions value on every re-render. We don't want fetchOptions to change.
-  const [fetchOptions, ] = useState(requestOptions);
-  const { status, data, error } = useSpotify(query, 'artists', fetchOptions);
-
-  const [trackData, setTrackData] = useState([]);
+  const { status, data, error } = useSpotify(query, 'artists', requestOptsRef.current);
 
   const handleSearchSubmit = e => {
     e.preventDefault();
@@ -27,40 +25,6 @@ const App = () => {
       setQuery(search);
       e.target.search.value = "";
     }
-  };
-
-  // let invalidTracks = []
-  
-  // function containsArtist(artist) {
-  //   return function(track) {
-  //     let containsCurrentArtist = false;
-  //       for (let i = 0; i < track.artists.length; i++) {
-  //         if (track.artists[i].name.toLowerCase().trim() === artist.toLowerCase().trim()) {
-  //           containsCurrentArtist = true;
-  //           break;
-  //         } else {
-  //           invalidTracks.push(track);
-  //           continue;
-  //         }  
-  //       }
-  //       return containsCurrentArtist;
-  //   }
-  // }
-
-  const handleGetTracksBtnClick = async (e) => {
-    e.preventDefault();
-
-    const artistName = e.target.getAttribute('data-artist-name');
-    const res = await fetch(`/api/spotify/search/tracks/${encodeURIComponent(artistName)}`, requestOptions)
-    const data = await res.json();
-
-    console.log("logging data from click event handler", data)
-    console.log("logging data.length from click event handler", data.length)
-    // const filteredTracks = data.items.filter(containsArtist(artistName))
-
-    // console.log("filteredTracks.length === data.items.length??" , filteredTracks.length === data.items.length)
-    // console.log("these are the invalidTracks", invalidTracks)
-    setTrackData(data)
   };
 
   return (
