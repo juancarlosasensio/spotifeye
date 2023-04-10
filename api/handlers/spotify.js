@@ -1,5 +1,10 @@
 const fetch = require('node-fetch');
 const processErrorResponse = require('../utils/processErrorResponse.js');
+const spotifyUtils = require('../utils/spotifyUtils');
+const {
+  containsArtist,
+  removeDuplicates
+} = spotifyUtils;
 
 const getArtists = async (req, res) => {
   console.log("logging from getArtists, req.params and req.query", req.params, req.query);
@@ -58,37 +63,6 @@ const getTracks = async (req, res) => {
   // Keys = track.name, and values = str of comma-separated track.artists
   const tracksAndArtistsCache = {}; 
 
-  function buildArtistsString(artistsArr) {
-    return artistsArr.reduce((accumulator, artistObj) => (
-          accumulator + ',' + artistObj.name.toLowerCase().trim()
-        ), '')
-  }
-
-  function containsArtist(artist) {
-    return function(track) {
-        const artistsStr = buildArtistsString(track.artists);
-
-        const isArtistIncluded = artistsStr.toLowerCase().includes(artist.toLowerCase().trim());
-        console.log(`${track.name} artists: ${artistsStr} contains ${artist}??`, isArtistIncluded);
-
-        return isArtistIncluded;
-    }
-  }
-
-
-  function removeDuplicates(cache) {
-    return function(track) {
-      const artists = buildArtistsString(track.artists)
-
-      if (cache[track.name] && cache[track.name] === artists) {
-        return false;  
-      } else {
-        cache[track.name] = artists;
-        return true;
-      }
-    }
-  }
-
   //making fetch call with relative path: https://stackoverflow.com/a/36369553
   try {
       let tokenResponse = await fetch(tokenAbsoluteURL);
@@ -100,27 +74,18 @@ const getTracks = async (req, res) => {
           },
       });
       spotifyData = await spotifyResponse.json();
+
+      const uniqueTracks = spotifyData.tracks.items.filter(removeDuplicates(tracksAndArtistsCache));
+      const filteredTracks = uniqueTracks.filter(containsArtist(query));
       
-      console.log('length of spotifyData.tracks.items', spotifyData.tracks.items.length)
-
-      // console.log('length of filteredTracks', filteredTracks.length)
-      // console.log('length of invalidTracks', invalidTracks.length)
-
-      // invalidTracks.map(track => {
-      //   console.log('here are the artists for this track, ', track.name)
-      //   track.artists.map(artist => console.log(artist))
-      //   return null;
-      // })
-
-      const uniqueTracks = spotifyData.tracks.items.filter(removeDuplicates(tracksAndArtistsCache))
-      const filteredTracks = uniqueTracks.filter(containsArtist(query))
-      
-      const duplicatedTracks = Object.keys(tracksAndArtistsCache);
-      console.log('LOGGING NAMES OF DUPLICATED TRACKS')
-      duplicatedTracks.forEach(trackName => console.log(`${trackName} by ${tracksAndArtistsCache[trackName]}`))
+      /* 
+      // Good for debugging:
+        const duplicatedTracks = Object.keys(tracksAndArtistsCache);
+        console.log('LOGGING NAMES OF DUPLICATED TRACKS')
+        duplicatedTracks.forEach(trackName => console.log(`${trackName} by ${tracksAndArtistsCache[trackName]}`));
+      */
 
       res.status(200).json(filteredTracks);
-      // res.status(200).json(spotifyData.tracks.items);
 
     } catch (error) {  
       let errMessage = `${error}`;
