@@ -31,7 +31,7 @@ const GetTracksBtn = ({ artist }) => {
     const artistName = e.target.getAttribute('data-artist-name');
     const res = await fetch(`/api/spotify/search/tracks/${encodeURIComponent(artistName)}`, requestOptsRef.current)
     const data = await res.json();
-    
+
     setTrackData(data)
   };
 
@@ -40,6 +40,7 @@ const GetTracksBtn = ({ artist }) => {
     <>
       <button 
         data-artist-name={artist.name}
+        aria-label={`See least popular tracks by ${artist.name}`}
         onClick={handleGetTracksBtnClick}
       >
         See tracks
