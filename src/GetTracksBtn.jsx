@@ -1,19 +1,15 @@
-import { useState } from 'react';
-import { useSpotify } from "./hooks/useSpotify";
+import { useState, useRef } from 'react';
+// import { useSpotify } from "./hooks/useSpotify";
 
-const GetTracksBtn = ({artist}) => {
-  const requestOptions = {
+const GetTracksBtn = ({ artist }) => {
+  const requestOptsRef = useRef({
     headers: {
       'Authorization': `${process.env.REACT_APP_AUTH_HEADER}`, 
       'Content-Type': 'application/json'
     }  
-  };
-  const [fetchOptions, ] = useState(requestOptions);
+  });
   
-  // TODO: figure out how to get an artists tracks? Spotify's api isn't really set up for that, 
-  // but we do get the artist ID in App.jsx and can pass it as a prop to this component, and 
-  // subsequently to this call to useSpotify
-  const { query, setQuery } = useState(artist);
+  const [trackData, setTrackData] = useState([]);
 
   /* 
     TODO: review this idea of calling the useSpotify hook sans params/args. 
@@ -26,33 +22,38 @@ const GetTracksBtn = ({artist}) => {
 
     https://stackoverflow.com/questions/63363524/how-do-i-set-state-from-within-a-fetch-in-reactjs
   */
-  const { status, data, error } = useSpotify();
-  
-  const handleGetTracksBtnClick = e => {
+  // const { status, data, error } = useSpotify();
+
+
+  const handleGetTracksBtnClick = async (e) => {
     e.preventDefault();
-    setQuery(artist)
+
+    const artistName = e.target.getAttribute('data-artist-name');
+    const res = await fetch(`/api/spotify/search/tracks/${encodeURIComponent(artistName)}`, requestOptsRef.current)
+    const data = await res.json();
+    
+    setTrackData(data)
   };
 
-  console.log(status, data, error)
 
   return (
     <>
-    {status === "idle" && (
-      <button onClick={handleGetTracksBtnClick}>Get Tracks</button>
-    )}
-    {status === "error" && <div>{error}</div>}
-    {status === "fetching" && <div>loading tracks...</div>}
-    {status === "fetched" && (
-      <details>
-        <summary>See tracks</summary>
+      <button 
+        data-artist-name={artist.name}
+        onClick={handleGetTracksBtnClick}
+      >
+        See tracks
+      </button>
+      {trackData.length < 1 && <p>No track data yet...</p>}
         <ul>
-          {data.items.map(track => (
-            <li>{track['name']}</li>
+          {trackData.map((track, i) => (
+            <li key={`${i}-${track.name}`}>{i}. {track.name} by {track.artists.reduce((accumulator, artistObj) => (
+            accumulator + ', ' + artistObj.name
+            ), '')}
+            </li>
           ))}
         </ul>
-      </details>
-    )}
-  </>
+    </>
   )
 }
 

@@ -75,6 +75,8 @@ const getTracks = async (req, res) => {
       });
       spotifyData = await spotifyResponse.json();
 
+      console.log('TOTAL TRACKS FOR ', query, spotifyData.tracks.total)
+
       const uniqueTracks = spotifyData.tracks.items.filter(removeDuplicates(tracksAndArtistsCache));
       const filteredTracks = uniqueTracks.filter(containsArtist(query));
       

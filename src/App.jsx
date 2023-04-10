@@ -92,21 +92,7 @@ const App = () => {
                   {artist.name}
                 </a>{" "}
                 <div>
-                  {/* <GetTracksBtn artist={artist.name} /> */}
-                  <button 
-                    data-artist-name={artist.name}
-                    onClick={handleGetTracksBtnClick}
-                  >
-                    See tracks
-                  </button>
-                  {trackData.length < 1 && <p>No track data yet...</p>}
-                  <ul>
-                    {trackData.map((track, i) => (
-                      <li key={`${i}-${track.name}`}>{i}. {track.name} by {track.artists.reduce((accumulator, artistObj) => (
-          accumulator + ', ' + artistObj.name
-      ), '')}</li>
-                    ))}
-                  </ul>
+                  <GetTracksBtn artist={artist} />
                 </div>
               </div>              
             ))}
