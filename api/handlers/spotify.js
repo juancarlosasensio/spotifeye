@@ -16,7 +16,7 @@ const getArtists = async (req, res) => {
   let spotifyData;
 
   console.log("You've hit /api/spotify/search/artists with query: ", query)
-  const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=artist`;
+  const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=artist&limit=10`;
   // https://stackoverflow.com/a/10185427
   const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken';
 
