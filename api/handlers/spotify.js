@@ -47,47 +47,56 @@ const getTracks = async (req, res) => {
   const { query } = req.params;
   
   if (!query) { res.status(204) };
-  
-  let spotifyResponse;
-  let spotifyData;
+
+  // Keys = track.name, and values = str of comma-separated track.artists
+  const tracksAndArtistsCache = {};
+  const TRACKS_PER_PAGE = 50;
+  const MAX_TRACKS = 1000;
+  let allTracksResults = [];
+  // let spotifyResponse;
+  // let spotifyData;
 
   console.log("You've hit /api/spotify/search/tracks with query: ", query)
   
-  // Spotify doesn't expose an endpoint to search for tracks by a specific artist
-  // So need to figure out how to get tracks for a given artist: https://stackoverflow.com/questions/41110986/searching-in-an-artists-tracks-spotify-apis  
-  // https://api.spotify.com/v1/search?q=track:"' + song + '"%20artist:"' + artist + '"&type=track&limit=10
+  // How to get tracks for a given artist? Spotify doesn't provide this out of the box: 
+  // https://stackoverflow.com/questions/41110986/searching-in-an-artists-tracks-spotify-apis  
   const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=track&limit=50`;
   // https://stackoverflow.com/a/10185427
-  const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken';
+  const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken'; 
 
-  // Keys = track.name, and values = str of comma-separated track.artists
-  const tracksAndArtistsCache = {}; 
-
-  //making fetch call with relative path: https://stackoverflow.com/a/36369553
   try {
-      let tokenResponse = await fetch(tokenAbsoluteURL);
+      let tokenResponse = await fetch(tokenAbsoluteURL); //fetch call w/relative path: https://stackoverflow.com/a/36369553
       let token = await tokenResponse.json();
-      // console.log("logging from getArtists handler: ", token)
-      spotifyResponse = await fetch(URL, {
-        headers: {
+
+      for (let i = 0; i < MAX_TRACKS / TRACKS_PER_PAGE; i++) {
+        console.log('FETCHING RESULTS FOR PAGE', i);
+        const spotifyRes = await fetch(`${URL}&offset=${TRACKS_PER_PAGE * i}`, {
+          headers: {
             "Authorization": `Bearer ${token}`
-          },
-      });
-      spotifyData = await spotifyResponse.json();
+          }
+        });
 
-      console.log('TOTAL TRACKS FOR ', query, spotifyData.tracks.total)
+        const spotifyData = await spotifyRes.json();
+        allTracksResults = allTracksResults.concat(spotifyData.tracks.items);
 
-      const uniqueTracks = spotifyData.tracks.items.filter(removeDuplicates(tracksAndArtistsCache));
+        if (spotifyData.tracks.items.length < 50) {
+          break;
+        }
+      }
+
+      console.log('THESE ARE ALL THE TRACKS!!', allTracksResults.length)
+
+      const uniqueTracks = allTracksResults.filter(removeDuplicates(tracksAndArtistsCache));
       const filteredTracks = uniqueTracks.filter(containsArtist(query));
-      
-      /* 
-      // Good for debugging:
-        const duplicatedTracks = Object.keys(tracksAndArtistsCache);
-        console.log('LOGGING NAMES OF DUPLICATED TRACKS')
-        duplicatedTracks.forEach(trackName => console.log(`${trackName} by ${tracksAndArtistsCache[trackName]}`));
-      */
 
       res.status(200).json(filteredTracks);
+
+       
+      // // Good to have for debugging:
+      //   const duplicatedTracks = Object.keys(tracksAndArtistsCache);
+      //   console.log('LOGGING NAMES OF DUPLICATED TRACKS')
+      //   duplicatedTracks.forEach(trackName => console.log(`${trackName} by ${tracksAndArtistsCache[trackName]}`));
+
 
     } catch (error) {  
       let errMessage = `${error}`;
