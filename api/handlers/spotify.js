@@ -39,59 +39,62 @@ const getArtists = async (req, res) => {
       processErrorResponse(res, 500, errMessage);  
   }
 }
-
-// Need to figure out how to get tracks for a particular artist
-// Or how to filter tracks by a given artist from a tracks response
-const getTracks = async (req, res) => {
-  console.log("logging from getTracks MY LAD, req.params and req.query", req.params, req.query);
+const getTracks = async (req, res) => { 
   const { query } = req.params;
-  
-  if (!query) { res.status(204) };
-  
-  let spotifyResponse;
-  let spotifyData;
-
   console.log("You've hit /api/spotify/search/tracks with query: ", query)
   
-  // Spotify doesn't expose an endpoint to search for tracks by a specific artist
-  // So need to figure out how to get tracks for a given artist: https://stackoverflow.com/questions/41110986/searching-in-an-artists-tracks-spotify-apis  
-  // https://api.spotify.com/v1/search?q=track:"' + song + '"%20artist:"' + artist + '"&type=track&limit=10
-  const URL = `https://api.spotify.com/v1/search?query=${encodeURIComponent(query)}&type=track&limit=50`;
-  // https://stackoverflow.com/a/10185427
-  const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken';
+  if (!query) { res.status(204) };
 
   // Keys = track.name, and values = str of comma-separated track.artists
-  const tracksAndArtistsCache = {}; 
+  const tracksAndArtistsCache = {};
+  let allTracksResults = [];
+  
+  // https://stackoverflow.com/a/10185427
+  const tokenAbsoluteURL = req.protocol + '://' + req.get('host') + '/api/spotify/getToken'; 
 
-  //making fetch call with relative path: https://stackoverflow.com/a/36369553
   try {
-      let tokenResponse = await fetch(tokenAbsoluteURL);
+      let tokenResponse = await fetch(tokenAbsoluteURL); //fetch call w/relative path: https://stackoverflow.com/a/36369553
       let token = await tokenResponse.json();
-      // console.log("logging from getArtists handler: ", token)
-      spotifyResponse = await fetch(URL, {
+
+      let response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=50`, {
         headers: {
-            "Authorization": `Bearer ${token}`
-          },
+          'Authorization': `Bearer ${token}`
+        }
       });
-      spotifyData = await spotifyResponse.json();
 
-      console.log('TOTAL TRACKS FOR ', query, spotifyData.tracks.total)
+      if (response.ok) {
+        let data = await response.json();
+        let tracks = data.tracks.items;
 
-      const uniqueTracks = spotifyData.tracks.items.filter(removeDuplicates(tracksAndArtistsCache));
-      const filteredTracks = uniqueTracks.filter(containsArtist(query));
-      
-      /* 
-      // Good for debugging:
-        const duplicatedTracks = Object.keys(tracksAndArtistsCache);
-        console.log('LOGGING NAMES OF DUPLICATED TRACKS')
-        duplicatedTracks.forEach(trackName => console.log(`${trackName} by ${tracksAndArtistsCache[trackName]}`));
-      */
+        console.log('first page has been fetched. There are this many tracks: ', tracks.length);
+        allTracksResults = [...allTracksResults, ...tracks]    
 
-      res.status(200).json(filteredTracks);
+        while (data.tracks.next) {
+          response = await fetch(data.tracks.next, {
+            headers: {
+            Authorization: `Bearer ${token}`
+          }
+          });
+
+          if (response.ok) {
+            data = await response.json();
+            tracks = data.tracks.items;
+            allTracksResults = [...allTracksResults, ...tracks]
+          }
+        }
+      } else {
+        throw new Error('Failed to fetch first page of artist tracks');
+      }
+      const tracksByArtist = allTracksResults.filter(containsArtist(query));
+      const uniqueTracksByArtist = tracksByArtist.filter(removeDuplicates(tracksAndArtistsCache))
+
+      uniqueTracksByArtist.sort((a, b) => a.popularity - b.popularity);
+
+      res.status(200).json(uniqueTracksByArtist.slice(0, 20));
 
     } catch (error) {  
       let errMessage = `${error}`;
-      console.log("There was an error on 2nd try", errMessage);
+      console.log(errMessage);
       processErrorResponse(res, 500, errMessage);  
   }
 }
@@ -120,3 +123,63 @@ module.exports = {
   getTracks,
   getToken
 };
+
+// const searchArtistTracks = async (artistName) => {
+//   try {
+//     // Encode the artist name for URL query
+//     const encodedArtistName = encodeURIComponent(artistName);
+
+//     // Initialize an empty array to store all the tracks
+//     let allTracks = [];
+
+//     // Make the initial fetch request to get the first page of tracks
+//     let response = await fetch(`https://api.spotify.com/v1/search?q=${encodedArtistName}&type=track&limit=50`, {
+//       headers: {
+//         Authorization: `Bearer ${YOUR_ACCESS_TOKEN}` // Replace with your actual access token
+//       }
+//     });
+
+//     if (response.ok) {
+//       const data = await response.json();
+//       const tracks = data.tracks.items;
+//       allTracks = [...allTracks, ...tracks]; // Add the tracks to the array
+
+//       // Check if there are more tracks, and fetch subsequent pages if needed
+//       while (data.tracks.next) {
+//         response = await fetch(data.tracks.next, { // Fetch the next page of tracks
+//           headers: {
+//             Authorization: `Bearer ${YOUR_ACCESS_TOKEN}` // Replace with your actual access token
+//           }
+//         });
+
+//         if (response.ok) {
+//           const data = await response.json();
+//           const tracks = data.tracks.items;
+//           allTracks = [...allTracks, ...tracks]; // Add the tracks to the array
+//         } else {
+//           // Handle error response
+//           throw new Error('Failed to fetch artist tracks');
+//         }
+//       }
+
+//       // Sort the tracks by popularity in ascending order
+//       allTracks.sort((a, b) => a.popularity - b.popularity);
+
+//       // Return the least popular tracks
+//       return allTracks;
+//     } else {
+//       // Handle error response
+//       throw new Error('Failed to fetch artist tracks');
+//     }
+//   } catch (error) {
+//     console.error(error);
+//   }
+// };
+// Note: As mentioned earlier, in the actual implementation, you will need to replace YOUR_ACCESS_TOKEN with your actual Spotify access token, which can be obtained through the Spotify Web API authorization process.
+
+
+
+
+// jasensio@ufm.edu
+// Write this function so that it uses a util function that gets an access token from Spotify and caches it for 1 hour 
+// Sure! H

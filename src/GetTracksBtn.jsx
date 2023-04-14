@@ -48,9 +48,10 @@ const GetTracksBtn = ({ artist }) => {
       {trackData.length < 1 && <p>No track data yet...</p>}
         <ul>
           {trackData.map((track, i) => (
-            <li key={`${i}-${track.name}`}>{i}. {track.name} by {track.artists.reduce((accumulator, artistObj) => (
+            <li key={`${i}-${track.name}`}>{i}. <a href={track.external_urls.spotify}>{track.name}</a> by {track.artists.reduce((accumulator, artistObj) => (
             accumulator + ', ' + artistObj.name
             ), '')}
+            , <em>popularity: {track?.popularity}</em>
             </li>
           ))}
         </ul>

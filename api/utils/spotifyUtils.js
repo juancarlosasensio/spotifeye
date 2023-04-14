@@ -14,12 +14,9 @@ function buildArtistsString(artistsArr) {
   )
 }
 
-function containsArtist(artist) {
+function containsArtist(artistName) {
   return function(track) {
-      const artistsStr = buildArtistsString(track.artists);
-      const isArtistIncluded = artistsStr.toLowerCase().includes(artist.toLowerCase().trim());
-
-      return isArtistIncluded;
+      return track.artists.some(artist => artist.name.toLowerCase() === artistName.toLowerCase());
   }
 }
 
